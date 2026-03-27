@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { useAppointments } from '../hooks/useAppointments';
 import { useServices } from '../hooks/useAppointments';
 import { useClients } from '../hooks/useAppointments';
@@ -105,7 +106,7 @@ export default function AppointmentModal({ date, time, appointment, onClose, onC
             <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
           </div>
           <div className="mt-2 flex items-center gap-2 text-sm text-slate-600">
-            <span>📅 {form.date ? format(parseISO(form.date), 'dd MMM yyyy', { locale: require('date-fns/locale/es') }) : ''}</span>
+            <span>📅 {form.date ? format(parseISO(form.date), 'dd MMM yyyy', { locale: es }) : ''}</span>
             <span>⏰ {form.time}</span>
             {selectedService && (
               <>

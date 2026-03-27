@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { format, startOfWeek, addDays, isSameDay, parseISO, addWeeks, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAppointments } from '../hooks/useAppointments';
@@ -18,6 +18,16 @@ export default function Calendar() {
   const [selectedTime, setSelectedTime] = useState(null);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [draggedId, setDraggedId] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Reset isDragging when any drag operation ends
+  useEffect(() => {
+    const handleDragEnd = () => {
+      setIsDragging(false);
+    };
+    window.addEventListener('dragend', handleDragEnd);
+    return () => window.removeEventListener('dragend', handleDragEnd);
+  }, []);
 
   const hours = [];
   for (let h = config.startHour; h <= config.endHour; h++) {
@@ -48,6 +58,7 @@ export default function Calendar() {
 
   const handleAppointmentClick = (e, apt) => {
     e.stopPropagation();
+    if (isDragging) return;
     setEditingAppointment(apt);
     setSelectedDate(apt.date);
     setSelectedTime(apt.time);
@@ -56,6 +67,7 @@ export default function Calendar() {
 
   const handleDragStart = (e, aptId) => {
     setDraggedId(aptId);
+    setIsDragging(true);
     e.dataTransfer.effectAllowed = 'move';
   };
 
@@ -70,6 +82,7 @@ export default function Calendar() {
       apt.id === draggedId ? { ...apt, date: dateStr, time: timeStr } : apt
     ));
     setDraggedId(null);
+    setIsDragging(false);
   };
 
   const handleDragOver = (e) => {
@@ -164,10 +177,11 @@ export default function Calendar() {
                       return (
                         <div
                           key={apt.id}
-                          draggable
+                          draggable="true"
                           onDragStart={(e) => handleDragStart(e, apt.id)}
                           onClick={(e) => handleAppointmentClick(e, apt)}
-                          className={`${colorClass} text-white text-xs p-1 rounded mb-1 cursor-grab active:cursor-grabbing ${
+                          onPointerDown={(e) => e.stopPropagation()}
+                          className={`${colorClass} text-white text-xs p-1 rounded mb-1 cursor-pointer select-none ${
                             apt.status === 'cancelled' ? 'opacity-40 line-through' : ''
                           } ${apt.status === 'completed' ? 'opacity-70' : ''}`}
                         >
